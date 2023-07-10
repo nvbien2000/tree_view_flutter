@@ -1,4 +1,4 @@
-import 'abstract_node_type.dart';
+import 'package:tree_view_flutter/tree_view_flutter.dart';
 
 class TreeType<T extends AbsNodeType> {
   TreeType({

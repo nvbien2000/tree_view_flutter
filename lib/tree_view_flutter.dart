@@ -1,5 +1,10 @@
 library tree_view_flutter;
 
-export 'data_structure/abstract_node_type.dart';
-export 'data_structure/tree_type.dart';
-export 'helper/tree_functions.dart';
+export 'functions/tree_traversal_functions.dart';
+export 'functions/tree_update_functions.dart';
+
+export 'models/abstract_node_type.dart';
+export 'models/tree_type.dart';
+
+export 'widgets/stack_tree_widget.dart';
+export 'widgets/tree_view_properties.dart';
