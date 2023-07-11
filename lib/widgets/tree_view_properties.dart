@@ -3,8 +3,8 @@ import 'package:tree_view_flutter/tree_view_flutter.dart';
 
 class TreeViewProperties<T extends AbsNodeType> {
   TreeViewProperties({
-    this.loadingWidget = const CircularProgressIndicator(),
-    this.errorWidget = const DefaultErrorWidget("Error"),
+    // this.loadingWidget = const CircularProgressIndicator(),
+    // this.errorWidget = const DefaultErrorWidget("Error"),
     this.emptyWidget = const DefaultEmptyWidget(),
     this.title = "",
     this.titleStyle = const TextStyle(
@@ -14,11 +14,11 @@ class TreeViewProperties<T extends AbsNodeType> {
     this.listTileTitleStyle,
   });
 
-  /// Default is [CircularProgressIndicator].
-  Widget loadingWidget;
+  // /// Default is [CircularProgressIndicator].
+  // Widget loadingWidget;
 
-  /// Default is triangle warning icon with description text.
-  Widget errorWidget;
+  // /// Default is triangle warning icon with description text.
+  // Widget errorWidget;
 
   /// Default is [DefaultEmptyWidget].
   Widget emptyWidget;
@@ -33,22 +33,22 @@ class TreeViewProperties<T extends AbsNodeType> {
   Widget? innerNodeLeadingWidget;
 }
 
-class DefaultErrorWidget extends StatelessWidget {
-  const DefaultErrorWidget(this.title, {super.key});
-  final String title;
+// class DefaultErrorWidget extends StatelessWidget {
+//   const DefaultErrorWidget(this.title, {super.key});
+//   final String title;
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.warning, color: Colors.red),
-        const SizedBox(height: 10),
-        Text(title),
-      ],
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       mainAxisSize: MainAxisSize.min,
+//       children: [
+//         const Icon(Icons.warning, color: Colors.red),
+//         const SizedBox(height: 10),
+//         Text(title),
+//       ],
+//     );
+//   }
+// }
 
 class DefaultEmptyWidget extends StatelessWidget {
   const DefaultEmptyWidget({super.key});

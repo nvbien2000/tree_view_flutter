@@ -76,7 +76,7 @@ Tương tự cấu trúc cây thư mục trong máy tính, `tree_view_flutter` s
 
 - [StackTreeWidget](lib/widgets/stack_tree_widget.dart): Cây giao diện được xây dựng theo kiểu stack (multiple choice).
 
-![StackTreeWidget Demo](readme_files/stack_tree_widget.gif)
+![StackTreeWidget Demo](readme_files/stack_tree_widget.mp4)
 
 - [StackTreeSingleChoiceWidget](lib/widgets/stack_tree_single_choice_widget.dart): Cây giao diện được xây dựng theo kiểu stack (single choice).
 
@@ -123,3 +123,5 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
+
+> **_NOTE:_**  Hoàng Sa, Trường Sa là của Việt Nam.

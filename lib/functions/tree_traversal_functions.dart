@@ -111,3 +111,17 @@ void searchLeavesWithTitleDFS<T extends AbsNodeType>(
     searchAllTreesWithTitleDFS(child, text, result);
   }
 }
+
+void returnChosenLeaves<T extends AbsNodeType>(
+    TreeType<T> tree, List<TreeType<T>> result) {
+  if (tree.data.isUnavailable) return;
+
+  if (tree.isLeaf && tree.data.isChosen == true) {
+    result.add(tree);
+    return;
+  }
+
+  for (var child in tree.children) {
+    returnChosenLeaves(child, result);
+  }
+}

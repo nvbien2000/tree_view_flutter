@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:tree_view_flutter/tree_view_flutter.dart';
 
-/// **Note 1**: When access this sheet for the first time,
-/// it could open a child, not root of the tree. Therefore we need
-/// a variable to know where is its parent.
-///
-/// **Note 2**: WHEN there is only 1 entire a tree: `listTrees = [root]`.
-///
-/// **Note 3**: Entire data is parsed only 1 time.
-///
-/// **Note 4**: Specify tree view widget's height
+/// This tree widget is a stack view (not expandable view). So there is a 
+/// special requirement: you can start with a list of children tree rather than
+/// the root. If you want to start with root, you can pass the argument:
+/// `listTrees = [root]`
 class StackTreeWidget<T extends AbsNodeType> extends StatefulWidget {
   const StackTreeWidget({
     super.key,
     required this.properties,
-    required this.fetchDataFunction,
+    required this.listTrees,
   });
 
   final TreeViewProperties properties;
-  final Future<List<TreeType<T>>> fetchDataFunction;
+  final List<TreeType<T>> listTrees;
 
   @override
   State<StackTreeWidget> createState() => _StackTreeWidgetState<T>();
@@ -29,35 +24,29 @@ class _StackTreeWidgetState<T extends AbsNodeType>
   List<TreeType<T>> listTrees = [];
 
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<TreeType<T>>>(
-      future: widget.fetchDataFunction,
-      builder: (_, snapshot) {
-        if (snapshot.hasData) {
-          listTrees = snapshot.data ?? [];
-          if (listTrees.isEmpty) {
-            return widget.properties.emptyWidget;
-          } else {
-            return _buildTreeView();
-          }
-        } else if (snapshot.hasError) {
-          return DefaultErrorWidget(snapshot.error.toString());
-        }
+  void initState() {
+    listTrees = widget.listTrees;
+    super.initState();
+  }
 
-        return widget.properties.loadingWidget;
-      },
-    );
+  @override
+  Widget build(BuildContext context) {
+    if (listTrees.isEmpty) {
+      return widget.properties.emptyWidget;
+    } else {
+      return _buildTreeView();
+    }
   }
 
   Widget _buildTreeView() {
     if (listTrees[0].parent == null) {
-      return _buildRootsOfTrees();
+      return _buildRootOfTree();
     } else {
-      return _buildChildrenOfTrees();
+      return _buildOtherChildrenOfTree();
     }
   }
 
-  Widget _buildRootsOfTrees() {
+  Widget _buildRootOfTree() {
     return Column(
       children: [
         //? top title
@@ -75,13 +64,13 @@ class _StackTreeWidgetState<T extends AbsNodeType>
         ),
         const SizedBox(height: 10),
 
-        //? main view, including 1 root
+        //? main view
         Expanded(
           child: ListView.separated(
             itemCount: listTrees.length,
             itemBuilder: (_, int index) {
               if (listTrees[index].isLeaf) {
-                return _buildLeafNodeWidget(listTrees[index]);
+                return _buildLeafWidget(listTrees[index]);
               } else {
                 return _buildInnerNodeWidget(listTrees[index]);
               }
@@ -93,11 +82,12 @@ class _StackTreeWidgetState<T extends AbsNodeType>
     );
   }
 
-  Widget _buildChildrenOfTrees() {
+  Widget _buildOtherChildrenOfTree() {
     return Column(
       children: [
         //? top title is current tree's parent title
         ListTile(
+          //? back button
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_outlined),
             onPressed: () {
@@ -114,10 +104,12 @@ class _StackTreeWidgetState<T extends AbsNodeType>
               });
             },
           ),
+          //? close button
           trailing: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
           ),
+          //? title
           title: Text(
             listTrees[0].parent!.data.title,
             style: widget.properties.titleStyle,
@@ -133,10 +125,10 @@ class _StackTreeWidgetState<T extends AbsNodeType>
             itemBuilder: (BuildContext context, int index) {
               var currentTree = listTrees[index];
 
-              if (currentTree.data.isInner) {
-                return _buildInnerNodeWidget(currentTree);
+              if (currentTree.isLeaf) {
+                return _buildLeafWidget(listTrees[index]);
               } else {
-                return _buildLeafNodeWidget(listTrees[index]);
+                return _buildInnerNodeWidget(currentTree);
               }
             },
             separatorBuilder: (_, __) => const Divider(),
@@ -146,31 +138,31 @@ class _StackTreeWidgetState<T extends AbsNodeType>
     );
   }
 
-  Widget _buildLeafNodeWidget(TreeType<T> leafTree) {
+  Widget _buildLeafWidget(TreeType<T> leaf) {
     return ListTile(
       onTap: () {},
       title: Text(
-        leafTree.data.title,
+        leaf.data.title,
         style: widget.properties.listTileTitleStyle,
       ),
       leading: widget.properties.leafLeadingWidget,
       trailing: Checkbox(
         tristate: true,
-        side: leafTree.data.isUnavailable
+        side: leaf.data.isUnavailable
             ? const BorderSide(color: Colors.grey, width: 1.0)
             : BorderSide(color: Theme.of(context).primaryColor, width: 1.0),
-        value: leafTree.data.isChosen,
+        value: leaf.data.isChosen,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)),
         ),
         //! leaf [isChosen] is always true or false, cannot be null
-        onChanged: leafTree.data.isUnavailable
+        onChanged: leaf.data.isUnavailable
             ? null
             : (_) => setState(
                 // leaf always has bool value (not null).
                 () => updateTreeMultipleChoice(
-                      leafTree,
-                      !leafTree.data.isChosen!,
+                      leaf,
+                      !leaf.data.isChosen!,
                     )),
       ),
     );
