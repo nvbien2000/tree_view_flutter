@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tree_view_flutter/tree_view_flutter.dart';
 
-/// This tree widget is a stack view (not expandable view). So there is a 
+/// This tree widget is a stack view (not expandable view). So there is a
 /// special requirement: you can start with a list of children tree rather than
 /// the root. If you want to start with root, you can pass the argument:
 /// `listTrees = [root]`
@@ -90,19 +90,7 @@ class _StackTreeWidgetState<T extends AbsNodeType>
           //? back button
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_outlined),
-            onPressed: () {
-              setState(() {
-                var parentOfCurrentTrees = listTrees[0].parent!;
-                // is this parent already root?
-                if (parentOfCurrentTrees.isRoot) {
-                  listTrees = [parentOfCurrentTrees];
-                } else {
-                  var parentOfParentOfCurrentTree =
-                      parentOfCurrentTrees.parent!;
-                  listTrees = parentOfParentOfCurrentTree.children;
-                }
-              });
-            },
+            onPressed: _pressBackToParent,
           ),
           //? close button
           trailing: IconButton(
@@ -158,22 +146,19 @@ class _StackTreeWidgetState<T extends AbsNodeType>
         //! leaf [isChosen] is always true or false, cannot be null
         onChanged: leaf.data.isUnavailable
             ? null
-            : (_) => setState(
+            : (_) {
                 // leaf always has bool value (not null).
-                () => updateTreeMultipleChoice(
-                      leaf,
-                      !leaf.data.isChosen!,
-                    )),
+                setState(() {
+                  updateTreeMultipleChoice(leaf, !leaf.data.isChosen!);
+                });
+              },
       ),
     );
   }
 
   _buildInnerNodeWidget(TreeType<T> innerNode) {
     return ListTile(
-      onTap: () {
-        if (innerNode.children.isEmpty) return;
-        setState(() => listTrees = innerNode.children);
-      },
+      onTap: () => _pressGoToChildren(innerNode),
       tileColor: null,
       title: Text(
         '${innerNode.data.title} (${innerNode.children.length})',
@@ -194,11 +179,28 @@ class _StackTreeWidgetState<T extends AbsNodeType>
             : Theme.of(context).primaryColor,
         onChanged: innerNode.data.isUnavailable
             ? null
-            : (value) => setState(() => updateTreeMultipleChoice(
-                  innerNode,
-                  value,
-                )),
+            : (value) {
+                setState(() => updateTreeMultipleChoice(innerNode, value));
+              },
       ),
     );
+  }
+
+  void _pressBackToParent() {
+    setState(() {
+      var parentOfCurrentTrees = listTrees[0].parent!;
+      // is this parent already root?
+      if (parentOfCurrentTrees.isRoot) {
+        listTrees = [parentOfCurrentTrees];
+      } else {
+        var parentOfParentOfCurrentTree = parentOfCurrentTrees.parent!;
+        listTrees = parentOfParentOfCurrentTree.children;
+      }
+    });
+  }
+
+  void _pressGoToChildren(TreeType<T> innerNode) {
+    if (innerNode.children.isEmpty) return;
+    setState(() => listTrees = innerNode.children);
   }
 }
