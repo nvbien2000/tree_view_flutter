@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:tree_view_flutter/tree_view_flutter.dart';
 
-/// This tree widget is a stack view (not expandable view). So there is a 
+/// This tree widget is a stack view (not expandable view). So there is a
 /// special requirement: you can start with a list of children tree rather than
 /// the root. If you want to start with root, you can pass the argument:
 /// `listTrees = [root]`
-class StackTreeWidget<T extends AbsNodeType> extends StatefulWidget {
-  const StackTreeWidget({
+class LazyStackTreeWidget<T extends AbsNodeType> extends StatefulWidget {
+  const LazyStackTreeWidget({
     super.key,
     required this.properties,
     required this.listTrees,
+    required this.getNewAddedTreeChildren,
   });
 
   final TreeViewProperties<T> properties;
   final List<TreeType<T>> listTrees;
 
+  /// If this function not null, data was parsed to tree only 1 time; else
+  /// data was parsed in run-time (lazy-loading).
+  final FunctionGetTreeChildren<T> getNewAddedTreeChildren;
+
   @override
-  State<StackTreeWidget> createState() => _StackTreeWidgetState<T>();
+  State<LazyStackTreeWidget> createState() => _LazyStackTreeWidgetState<T>();
 }
 
-class _StackTreeWidgetState<T extends AbsNodeType>
-    extends State<StackTreeWidget<T>> {
+class _LazyStackTreeWidgetState<T extends AbsNodeType>
+    extends State<LazyStackTreeWidget<T>> {
   List<TreeType<T>> listTrees = [];
 
   @override
@@ -171,12 +176,15 @@ class _StackTreeWidgetState<T extends AbsNodeType>
   _buildInnerNodeWidget(TreeType<T> innerNode) {
     return ListTile(
       onTap: () {
-        if (innerNode.children.isEmpty) return;
-        setState(() => listTrees = innerNode.children);
+        var newAddedTreeChildren = widget.getNewAddedTreeChildren(innerNode);
+
+        if (newAddedTreeChildren.isEmpty) return;
+        innerNode.children.addAll(newAddedTreeChildren);
+        setState(() => listTrees = newAddedTreeChildren);
       },
       tileColor: null,
       title: Text(
-        '${innerNode.data.title} (${innerNode.children.length})',
+        innerNode.data.title,
         style: widget.properties.listTileTitleStyle,
       ),
       leading: widget.properties.innerNodeLeadingWidget,
@@ -202,3 +210,6 @@ class _StackTreeWidgetState<T extends AbsNodeType>
     );
   }
 }
+
+typedef FunctionGetTreeChildren<T extends AbsNodeType> = List<TreeType<T>>
+    Function(TreeType<T> parent);

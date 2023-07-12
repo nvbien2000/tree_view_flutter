@@ -1,24 +1,24 @@
-import 'package:example/data/custom_node_type.dart';
 import 'package:flutter/material.dart';
 import 'package:tree_view_flutter/tree_view_flutter.dart';
 
-import 'data/example_tree_type_1.dart';
+import 'data/custom_node_type.dart';
+import 'data/example_tree_type_2.dart';
 
-/// data was parsed 1 time
-class ExStackTreeScreen extends StatefulWidget {
-  const ExStackTreeScreen({super.key});
+/// data was parsed in run-time
+class ExLazyStackTreeScreen extends StatefulWidget {
+  const ExLazyStackTreeScreen({super.key});
 
   @override
-  State<ExStackTreeScreen> createState() => _ExStackTreeScreenState();
+  State<ExLazyStackTreeScreen> createState() => _ExLazyStackTreeScreenState();
 }
 
-class _ExStackTreeScreenState extends State<ExStackTreeScreen> {
+class _ExLazyStackTreeScreenState extends State<ExLazyStackTreeScreen> {
   List<TreeType<CustomNodeType>> listTrees = [];
   final String searchingText = "3";
 
   @override
   void initState() {
-    listTrees = sampleTree();
+    listTrees = [createRoot()];
     super.initState();
   }
 
@@ -85,5 +85,29 @@ class _ExStackTreeScreenState extends State<ExStackTreeScreen> {
         ],
       ),
     );
+  }
+
+  List<TreeType<CustomNodeType>> getNewAddedTreeChildren(
+      TreeType<CustomNodeType> parent) {
+    List<TreeType<CustomNodeType>> newChildren;
+    String parentTitle = parent.data.title;
+
+    if (parentTitle.contains("0")) {
+      newChildren = createChildrenOfRoot();
+    } else if (parentTitle.contains("1.1")) {
+      newChildren = createChildrenOfLv1_1();
+    } else if (parentTitle.contains("2.1")) {
+      newChildren = createChildrenOfLv2_1();
+    } else if (parentTitle.contains("2.2")) {
+      newChildren = createChildrenOfLv2_2();
+    } else {
+      newChildren = [];
+    }
+
+    for (var newChild in newChildren) {
+      newChild.parent = parent;
+    }
+
+    return newChildren;
   }
 }
