@@ -135,7 +135,6 @@ class _StackTreeWidgetState<T extends AbsNodeType>
       ),
       leading: widget.properties.leafLeadingWidget,
       trailing: Checkbox(
-        tristate: true,
         side: leaf.data.isUnavailable
             ? const BorderSide(color: Colors.grey, width: 1.0)
             : BorderSide(color: Theme.of(context).primaryColor, width: 1.0),
@@ -146,11 +145,9 @@ class _StackTreeWidgetState<T extends AbsNodeType>
         //! leaf [isChosen] is always true or false, cannot be null
         onChanged: leaf.data.isUnavailable
             ? null
-            : (_) {
+            : (value) {
                 // leaf always has bool value (not null).
-                setState(() {
-                  updateTreeMultipleChoice(leaf, !leaf.data.isChosen!);
-                });
+                setState(() => updateTreeMultipleChoice(leaf, value));
               },
       ),
     );
