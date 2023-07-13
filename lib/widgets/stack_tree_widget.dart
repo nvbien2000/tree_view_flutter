@@ -153,7 +153,7 @@ class _StackTreeWidgetState<T extends AbsNodeType>
     );
   }
 
-  _buildInnerNodeWidget(TreeType<T> innerNode) {
+  Widget _buildInnerNodeWidget(TreeType<T> innerNode) {
     return ListTile(
       onTap: () => _pressGoToChildren(innerNode),
       tileColor: null,

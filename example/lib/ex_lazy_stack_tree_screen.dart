@@ -25,7 +25,7 @@ class _ExLazyStackTreeScreenState extends State<ExLazyStackTreeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Stack Tree (multiple choice)")),
+      appBar: AppBar(title: const Text("Lazy Stack Tree (multiple choice)")),
       body: Column(
         children: [
           const SizedBox(height: 30),
@@ -38,11 +38,12 @@ class _ExLazyStackTreeScreenState extends State<ExLazyStackTreeScreen> {
             height: 60,
           ),
           Expanded(
-            child: StackTreeWidget(
+            child: LazyStackTreeWidget(
               properties: TreeViewProperties<CustomNodeType>(
                 title: "THIS IS TITLE",
               ),
               listTrees: listTrees,
+              getNewAddedTreeChildren: getNewAddedTreeChildren,
             ),
           ),
           const Divider(
@@ -52,23 +53,23 @@ class _ExLazyStackTreeScreenState extends State<ExLazyStackTreeScreen> {
           OutlinedButton(
             onPressed: () {
               List<TreeType<CustomNodeType>> result = [];
-              var root = listTrees[0].parent!;
-              returnChosenLeaves(root, result);
+              var root = findRoot(listTrees[0]);
+              returnChosenNodes(root, result);
               String resultTxt = "";
               for (var e in result) {
-                resultTxt += "${e.data.title}\n";
+                resultTxt += "\n${e.data.title}";
               }
-              if (resultTxt.isEmpty) resultTxt = "none";
+              if (resultTxt.isEmpty) resultTxt = "\nnone";
 
               var snackBar = SnackBar(content: Text(resultTxt));
               ScaffoldMessenger.of(context).showSnackBar(snackBar);
             },
-            child: const Text("Which leaves were chosen?"),
+            child: const Text("Which nodes were chosen? (not full data)"),
           ),
           OutlinedButton(
             onPressed: () {
               List<TreeType<CustomNodeType>> result = [];
-              var root = listTrees[0].parent!;
+              var root = findRoot(listTrees[0]);
               searchAllTreesWithTitleDFS(root, searchingText, result);
               String resultTxt = "";
               for (var e in result) {
@@ -79,7 +80,8 @@ class _ExLazyStackTreeScreenState extends State<ExLazyStackTreeScreen> {
               var snackBar = SnackBar(content: Text(resultTxt));
               ScaffoldMessenger.of(context).showSnackBar(snackBar);
             },
-            child: Text("Which nodes contain text='$searchingText'?"),
+            child: Text(
+                "Which nodes contain text='$searchingText'? (not full data)"),
           ),
           const SizedBox(height: 30),
         ],

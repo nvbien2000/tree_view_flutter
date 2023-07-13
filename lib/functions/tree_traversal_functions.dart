@@ -4,7 +4,11 @@ import 'package:tree_view_flutter/tree_view_flutter.dart';
 enum EChosenAllValues { chosenAll, unchosenAll, chosenSome, notChosenable }
 
 /// Check if the the tree is chosen all
-EChosenAllValues isChosenAll<T extends AbsNodeType>(TreeType<T> tree) {
+///
+///   - [isThisTreeLazy]: When this function is used in lazy-load tree, some
+/// nodes may contain 0 child because they haven't been loaded.
+EChosenAllValues isChosenAll<T extends AbsNodeType>(TreeType<T> tree,
+    {bool isThisLazyTree = false}) {
   //? Case 1: This tree is only a leaf
   //? ______
   if (tree.isLeaf) {
@@ -27,6 +31,10 @@ EChosenAllValues isChosenAll<T extends AbsNodeType>(TreeType<T> tree) {
   bool hasUnchosenAll = false;
 
   /**
+   * ! SPECIAL CASE: If tree is loaded lazily -> if its children haven't been
+   * ! loaded, do not need to call [isChosenAll(child)] and directly return
+   * ! result [isChosen] based on property [tree.isChildrenLoadedLazily]
+   * 
    * - If one of its child is [EChosenAllValues.chosenSome], just return & exit.
    * 
    * - Case chosen some: [hasChosenAll && hasUnchosenAll]...
@@ -38,8 +46,19 @@ EChosenAllValues isChosenAll<T extends AbsNodeType>(TreeType<T> tree) {
    * - Else, return default value [EChosenAllValues.notChosenable]
    */
 
+  // this is lazy tree & its children haven't been loaded
+  if (isThisLazyTree && !tree.isChildrenLoadedLazily) {
+    if (tree.data.isUnavailable) {
+      return EChosenAllValues.notChosenable;
+    } else {
+      return tree.data.isChosen == true // true
+          ? EChosenAllValues.chosenAll
+          : EChosenAllValues.unchosenAll; // false (no exist null)
+    }
+  }
+
   for (var child in tree.children) {
-    var temp = isChosenAll(child);
+    var temp = isChosenAll(child, isThisLazyTree: isThisLazyTree);
     switch (temp) {
       case EChosenAllValues.chosenSome:
         return EChosenAllValues.chosenSome;
@@ -123,5 +142,16 @@ void returnChosenLeaves<T extends AbsNodeType>(
 
   for (var child in tree.children) {
     returnChosenLeaves(child, result);
+  }
+}
+
+void returnChosenNodes<T extends AbsNodeType>(
+    TreeType<T> tree, List<TreeType<T>> result) {
+  if (tree.data.isUnavailable) return;
+
+  if (tree.data.isChosen == true) result.add(tree);
+
+  for (var child in tree.children) {
+    returnChosenNodes(child, result);
   }
 }

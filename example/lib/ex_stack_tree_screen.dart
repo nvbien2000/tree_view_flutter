@@ -52,7 +52,7 @@ class _ExStackTreeScreenState extends State<ExStackTreeScreen> {
           OutlinedButton(
             onPressed: () {
               List<TreeType<CustomNodeType>> result = [];
-              var root = listTrees[0].parent!;
+              var root = findRoot(listTrees[0]);
               returnChosenLeaves(root, result);
               String resultTxt = "";
               for (var e in result) {

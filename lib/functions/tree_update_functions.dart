@@ -59,13 +59,17 @@ bool uncheckALl<T extends AbsNodeType>(TreeType<T> tree) {
 /// - [chosenValue]: same meaning as [isChosen] in [AbsNodeType].
 /// - [isUpdatingParentRecursion]: is used to determine whether we are updating
 /// the parent/ancestors tree or updating the children of this tree.
+/// - [isThisLazyTree]: is this a lazy-load tree?
 void updateTreeMultipleChoice<T extends AbsNodeType>(
-    TreeType<T> tree, bool? chosenValue,
-    {bool isUpdatingParentRecursion = false}) {
-  // Step 1. update current node
+  TreeType<T> tree,
+  bool? chosenValue, {
+  bool isUpdatingParentRecursion = false,
+  bool isThisLazyTree = false,
+}) {
+  //? Step 1. update current node
   tree.data.isChosen = chosenValue;
 
-  // Step 2. update its children
+  //? Step 2. update its children
   if (!tree.isLeaf && !isUpdatingParentRecursion) {
     /// if not [isUpdatingParentRecursion], means this is the first time call
     /// function [updateTree], [chosenValue] is not nullable for now
@@ -76,21 +80,38 @@ void updateTreeMultipleChoice<T extends AbsNodeType>(
     }
   }
 
-  // Step 3. update parent
+  //? Step 3. update parent
   if (!tree.isRoot) {
     var parent = tree.parent!;
-    var parentChosenValue = isChosenAll(parent);
+    var parentChosenValue = isChosenAll(
+      parent,
+      isThisLazyTree: isThisLazyTree,
+    );
 
     switch (parentChosenValue) {
       case EChosenAllValues.chosenSome:
-        updateTreeMultipleChoice(parent, null, isUpdatingParentRecursion: true);
+        updateTreeMultipleChoice(
+          parent,
+          null,
+          isUpdatingParentRecursion: true,
+          isThisLazyTree: isThisLazyTree,
+        );
         break;
       case EChosenAllValues.chosenAll:
-        updateTreeMultipleChoice(parent, true, isUpdatingParentRecursion: true);
+        updateTreeMultipleChoice(
+          parent,
+          true,
+          isUpdatingParentRecursion: true,
+          isThisLazyTree: isThisLazyTree,
+        );
         break;
       case EChosenAllValues.unchosenAll:
-        updateTreeMultipleChoice(parent, false,
-            isUpdatingParentRecursion: true);
+        updateTreeMultipleChoice(
+          parent,
+          false,
+          isUpdatingParentRecursion: true,
+          isThisLazyTree: isThisLazyTree,
+        );
         break;
       default:
         throw Exception("""File: tree_function.dart

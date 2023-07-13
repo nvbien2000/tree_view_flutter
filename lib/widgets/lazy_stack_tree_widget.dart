@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tree_view_flutter/tree_view_flutter.dart';
 
-/// This tree widget is a stack view (not expandable view). So there is a
-/// special requirement: you can start with a list of children tree rather than
-/// the root. If you want to start with root, you can pass the argument:
-/// `listTrees = [root]`
 class LazyStackTreeWidget<T extends AbsNodeType> extends StatefulWidget {
   const LazyStackTreeWidget({
     super.key,
@@ -95,19 +91,7 @@ class _LazyStackTreeWidgetState<T extends AbsNodeType>
           //? back button
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_outlined),
-            onPressed: () {
-              setState(() {
-                var parentOfCurrentTrees = listTrees[0].parent!;
-                // is this parent already root?
-                if (parentOfCurrentTrees.isRoot) {
-                  listTrees = [parentOfCurrentTrees];
-                } else {
-                  var parentOfParentOfCurrentTree =
-                      parentOfCurrentTrees.parent!;
-                  listTrees = parentOfParentOfCurrentTree.children;
-                }
-              });
-            },
+            onPressed: _pressBackToParent,
           ),
           //? close button
           trailing: IconButton(
@@ -152,7 +136,6 @@ class _LazyStackTreeWidgetState<T extends AbsNodeType>
       ),
       leading: widget.properties.leafLeadingWidget,
       trailing: Checkbox(
-        tristate: true,
         side: leaf.data.isUnavailable
             ? const BorderSide(color: Colors.grey, width: 1.0)
             : BorderSide(color: Theme.of(context).primaryColor, width: 1.0),
@@ -163,25 +146,21 @@ class _LazyStackTreeWidgetState<T extends AbsNodeType>
         //! leaf [isChosen] is always true or false, cannot be null
         onChanged: leaf.data.isUnavailable
             ? null
-            : (_) => setState(
+            : (value) {
                 // leaf always has bool value (not null).
-                () => updateTreeMultipleChoice(
+                setState(() => updateTreeMultipleChoice(
                       leaf,
-                      !leaf.data.isChosen!,
-                    )),
+                      value,
+                      isThisLazyTree: true,
+                    ));
+              },
       ),
     );
   }
 
-  _buildInnerNodeWidget(TreeType<T> innerNode) {
+  Widget _buildInnerNodeWidget(TreeType<T> innerNode) {
     return ListTile(
-      onTap: () {
-        var newAddedTreeChildren = widget.getNewAddedTreeChildren(innerNode);
-
-        if (newAddedTreeChildren.isEmpty) return;
-        innerNode.children.addAll(newAddedTreeChildren);
-        setState(() => listTrees = newAddedTreeChildren);
-      },
+      onTap: () => _pressInnerNode(innerNode),
       tileColor: null,
       title: Text(
         innerNode.data.title,
@@ -205,11 +184,62 @@ class _LazyStackTreeWidgetState<T extends AbsNodeType>
             : (value) => setState(() => updateTreeMultipleChoice(
                   innerNode,
                   value,
+                  isThisLazyTree: true,
                 )),
       ),
     );
   }
-}
 
-typedef FunctionGetTreeChildren<T extends AbsNodeType> = List<TreeType<T>>
-    Function(TreeType<T> parent);
+  void _pressBackToParent() {
+    setState(() {
+      var parentOfCurrentTrees = listTrees[0].parent!;
+      // is this parent already root?
+      if (parentOfCurrentTrees.isRoot) {
+        listTrees = [parentOfCurrentTrees];
+      } else {
+        var parentOfParentOfCurrentTree = parentOfCurrentTrees.parent!;
+        listTrees = parentOfParentOfCurrentTree.children;
+      }
+    });
+  }
+
+  void _pressInnerNode(TreeType<T> innerNode) {
+    /// children was loaded before -> call it existed children & return
+    if (innerNode.isChildrenLoadedLazily) {
+      if (innerNode.children.isEmpty) return;
+      setState(() => listTrees = innerNode.children);
+      return;
+    }
+
+    /// mark current tree (inner node)'s [isChildrenLoadedLazily = true]
+    innerNode.isChildrenLoadedLazily = true;
+    var newAddedTreeChildren = widget.getNewAddedTreeChildren(innerNode);
+
+    /// if inner node has no children, mark it as unavailable & not chosen,
+    /// then update tree and -> `return`
+    if (newAddedTreeChildren.isEmpty) {
+      var snackBar = const SnackBar(content: Text("This one has no children"));
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      setState(() {
+        innerNode.data.isUnavailable = true;
+        innerNode.data.isChosen = false;
+        updateTreeMultipleChoice(
+          innerNode,
+          false,
+          isThisLazyTree: true,
+        );
+      });
+      return;
+    }
+
+    /// else, update new children's `isChosen` properties in case of current
+    /// tree has `isChosen = true`, then continue call stack
+    if (innerNode.data.isChosen == true) {
+      for (var e in newAddedTreeChildren) {
+        if (!e.data.isUnavailable) e.data.isChosen = true;
+      }
+    }
+    innerNode.children.addAll(newAddedTreeChildren);
+    setState(() => listTrees = newAddedTreeChildren);
+  }
+}
